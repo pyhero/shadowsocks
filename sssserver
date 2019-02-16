@@ -1,0 +1,103 @@
+#!/bin/bash
+#
+# chkconfig: 2345 10 90
+# description: shadowsocks server
+#
+# Author: Panda
+# Update: 20190216
+#
+# put this script @/etc/init.d/ssserver
+# chmod +x /etc/init.d/ssserver
+# install as
+#   /etc/init.d/ssserver install
+# start as
+#   /etc/init.d/ssserver start
+# stop as
+#   /etc/init.d/ssserver stop
+# start as system start:
+#   chkconfig ssserver on
+#
+
+# vars define
+PASSWD='123.com'
+PORT=2019
+
+PROG="ssserver"
+PID_FILE=/tmp/${PROG}-${PORT}.pid
+
+printHelp () {
+        echo "Usage:$0 {start|stop|restart|status|install}"
+        exit 2
+}
+
+[ $# -lt 1 ] && printHelp
+
+# check ssserver
+BIN=$(which ssserver)
+if [ $? -ne 0 ];then
+    echo "Error: Not found ssserver."
+    echo "Install it as https://github.com/pyhero/shadowsocks or"
+    echo "$0 install"
+    exit 2
+fi
+
+start () {
+    $BIN -p $PORT -k $PASSWD --user nobody --pid-file ${PID_FILE} -d start
+}
+
+stop () {
+    if [ ! -f $PID_FILE ];then
+        PID=$(ps aux | grep $BIN | grep -v grep | awk '{print $2}')
+        if [ ! -z $(echo $PID | awk '{print $1}') ];then
+            for p in $PID;do
+                kill $p
+                echo "stopped"
+            done
+        else
+            echo "$PROG already stopped."
+        fi
+    else
+        $BIN --pid-file ${PID_FILE} -d stop
+    fi
+}
+
+status () {
+    program=$(ps aux | grep $BIN | grep -v grep)
+    if [ ! -z $(echo $program | awk '{print $1}') ];then
+        echo "$program"
+    else
+        if [ -f $PID_FILE ];then
+            echo "no program running, but $PID_FILE existed."
+        else
+            echo "$PROG not running."
+        fi
+    fi
+}
+
+install () {
+    yum -y install python-setuptools
+    easy_install pip
+    pip install shadowsocks
+}
+
+case $1 in
+        start)
+                start
+                ;;
+        stop)
+                stop
+                ;;
+        restart)
+                stop
+                echo "sleep 3s for waiting..." && sleep 3
+                start
+                ;;
+        status)
+                status
+                ;;
+        install)
+                install
+                ;;
+        *)
+                printHelp
+esac
