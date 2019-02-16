@@ -17,6 +17,31 @@ Features:
 Server
 ------
 
+### one script for centos
+
+https://github.com/pyhero/shadowsocks/blob/master/sssserver
+
+put this script @/etc/init.d/ssserver
+```
+chmod +x /etc/init.d/ssserver
+```
+install as
+```
+/etc/init.d/ssserver install
+```
+start as
+```
+/etc/init.d/ssserver start
+```
+stop as
+```
+/etc/init.d/ssserver stop
+```
+start as system start:
+```
+chkconfig ssserver on
+```
+
 ### Install
 
 Debian / Ubuntu:
